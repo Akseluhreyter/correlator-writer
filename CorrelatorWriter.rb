@@ -6,14 +6,15 @@
 
 class CorrelatorWriter
 
-  attr_accessor :comment, :name, :coll_system_and_energy, :centrality, 
+  attr_accessor :comment, :name, :index, :coll_system_and_energy, :centrality, 
                 :trigger_range, :associated_range, :azimuthal_range
 
-  def initialize(comment: "", name: "", coll_system_and_energy: "", centrality: 0..0, 
+  def initialize(comment: "", name: "", index: 0, coll_system_and_energy: "", centrality: 0..0, 
                   trigger_range: 0..0, associated_range: 0..0, 
                   azimuthal_range: 0..0)
     @comment = comment
     @name = name
+    @index = index
     @coll_system_and_energy = coll_system_and_energy
     @centrality = centrality
     @trigger_range = trigger_range
@@ -24,7 +25,7 @@ class CorrelatorWriter
   # Writes the code to stdout. 
   def write()
     puts "// #{@comment}" unless @comment.empty?
-    puts "Correlator #{@name}();"
+    puts "Correlator #{@name}(#{index});"
     puts "#{@name}.SetCollSystemAndEnergy(#{@coll_system_and_energy});"
     puts "#{@name}.SetCentrality(#{@centrality.min}, #{@centrality.max});"
     puts "#{@name}.SetTriggerRange(#{@trigger_range.min}, #{@trigger_range.max});"
@@ -50,6 +51,10 @@ class Parser
   def self.as_string(value)
     String(value)
   end
+  
+  def self.as_integer(value)
+    Integer(value)
+  end
 end
 
 if ARGV[0] == "-i"
@@ -58,52 +63,63 @@ if ARGV[0] == "-i"
   parser = Parser.new
   correlator_writer = CorrelatorWriter.new
   
-  loop do
-    line = STDIN.gets.chomp
+  begin
+    loop do
+      line = STDIN.gets.chomp
   
-    command, arg = Parser.as_args(line)
+      command, arg = Parser.as_args(line)
   
-    case command
-    when ":quit", ":q" 
-      puts "Quiting!"
-      break
-    when ":write", ":w"
-      correlator_writer.write()
-    when ":x"
-      correlator_writer.write()
-      break
-    when ":h"
-      puts "Help: Read the script :^)"
-    when ":name"
-      correlator_writer.name = Parser.as_string(arg)
-    when ":coll_system_and_energy", ":CollSystemAndEnergy", ":cse"
-      correlator_writer.coll_system_and_energy = Parser.as_string(arg)
-    when ":centrality", ":cen"
-      correlator_writer.centrality = Parser.as_range(arg)
-    when ":trigger_range", ":trr"
-      correlator_writer.trigger_range = Parser.as_range(arg)
-    when ":associated_range", ":asr"
-      correlator_writer.associated_range = Parser.as_range(arg)
-    when ":azimuthal_range", ":azr"
-      correlator_writer.azimuthal_range = Parser.as_range(arg)
-    when ":comment", "com"
-      correlator_writer.comment = Parser.as_string(arg)
-    when nil
-      # Do nothing. We just want some space.
-    else
-      puts "#{command} is not a valid command!"
+      case command
+      when ":quit", ":q" 
+        puts "Quiting!"
+        break
+      when ":write", ":w"
+        correlator_writer.write()
+      when ":x"
+        correlator_writer.write()
+        break
+      when ":h"
+        puts "Help: Read the script :^)"
+      when ":name"
+        correlator_writer.name = Parser.as_string(arg)
+      when ":index"
+        correlator_writer.index = Parser.as_integer(arg)
+      when ":coll_system_and_energy", ":CollSystemAndEnergy", ":cse"
+        correlator_writer.coll_system_and_energy = Parser.as_string(arg)
+      when ":centrality", ":cen"
+        correlator_writer.centrality = Parser.as_range(arg)
+      when ":trigger_range", ":trr"
+        correlator_writer.trigger_range = Parser.as_range(arg)
+      when ":associated_range", ":asr"
+        correlator_writer.associated_range = Parser.as_range(arg)
+      when ":azimuthal_range", ":azr"
+        correlator_writer.azimuthal_range = Parser.as_range(arg)
+      when ":comment", "com"
+        correlator_writer.comment = Parser.as_string(arg)
+      when nil
+        # Do nothing. We just want some space.
+      else
+        puts "#{command} is not a valid command!"
+      end
     end
+  rescue ArgumentError => e
+    puts e
+    retry
+  rescue TypeError => e
+    puts e
+    retry
   end
 else
   name = Parser.as_string(ARGV[0])
-  coll_system_and_energy = Parser.as_string(ARGV[1])
-  centrality = Parser.as_range(ARGV[2])
-  trigger_range = Parser.as_range(ARGV[3])
-  associated_range = Parser.as_range(ARGV[4])
-  azimuthal_range = Parser.as_range(ARGV[5])
-  comment = Parser.as_string(ARGV[6])
+  index = Parser.as_integer(ARGV[1])
+  coll_system_and_energy = Parser.as_string(ARGV[2])
+  centrality = Parser.as_range(ARGV[3])
+  trigger_range = Parser.as_range(ARGV[4])
+  associated_range = Parser.as_range(ARGV[5])
+  azimuthal_range = Parser.as_range(ARGV[6])
+  comment = Parser.as_string(ARGV[7])
 
-  correlator = CorrelatorWriter.new(name: name, coll_system_and_energy: coll_system_and_energy, centrality: centrality,
+  correlator = CorrelatorWriter.new(name: name, index: index, coll_system_and_energy: coll_system_and_energy, centrality: centrality,
                                     trigger_range: trigger_range, associated_range: associated_range,
                                     azimuthal_range: azimuthal_range, comment: comment)                            
   correlator.write()
