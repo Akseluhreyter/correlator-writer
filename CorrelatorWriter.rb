@@ -94,7 +94,7 @@ if ARGV[0] == "-i"
         correlator_writer.associated_range = Parser.as_range(arg)
       when ":azimuthal_range", ":azr"
         correlator_writer.azimuthal_range = Parser.as_range(arg)
-      when ":comment", "com"
+      when ":comment", ":com"
         correlator_writer.comment = Parser.as_string(arg)
       when nil
         # Do nothing. We just want some space.
