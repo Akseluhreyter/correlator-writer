@@ -102,10 +102,7 @@ if ARGV[0] == "-i"
         puts "#{command} is not a valid command!"
       end
     end
-  rescue ArgumentError => e
-    puts e
-    retry
-  rescue TypeError => e
+  rescue StandardError => e
     puts e
     retry
   end
